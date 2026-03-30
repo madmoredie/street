@@ -1,0 +1,51 @@
+using UnityEngine;
+using HutongGames.PlayMaker;
+
+[ActionCategory("Game/Building")]
+public class GetBuildingById : FsmStateAction
+{
+    [RequiredField]
+    [ObjectType(typeof(BuildingDatabase))]
+    public FsmObject buildingDatabase;
+
+    [RequiredField]
+    public FsmString buildingId;
+
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(BuildingData))]
+    public FsmObject buildingData;   // RESULT
+
+    public override void Reset()
+    {
+        buildingDatabase = null;
+        buildingId = null;
+        buildingData = null;
+    }
+
+    public override void OnEnter()
+    {
+        var db = buildingDatabase.Value as BuildingDatabase;
+
+        if (db == null || db.buildings == null)
+        {
+            Finish();
+            return;
+        }
+
+        for (int i = 0; i < db.buildings.Length; i++)
+        {
+            var data = db.buildings[i];
+
+            // 🔴 CHANGE THIS LINE if your field name is different
+            if (data != null && data.id == buildingId.Value)
+            {
+                buildingData.Value = data;
+                Finish();
+                return;
+            }
+        }
+
+        Debug.LogWarning($"[GetBuildingById] Building ID not found: {buildingId.Value}");
+        Finish();
+    }
+}
