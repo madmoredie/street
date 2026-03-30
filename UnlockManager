@@ -1,0 +1,130 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Events;
+
+#if PLAYMAKER
+using HutongGames.PlayMaker;
+#endif
+
+[Serializable]
+public class BuildingDataEvent : UnityEvent<BuildingData> { }
+
+public class UnlockManager : MonoBehaviour
+{
+    [Header("Data Source")]
+    public BuildingDatabase buildingDatabase;
+
+    [Header("State")]
+    public int vibrancy = 0;
+    public List<string> unlockedIds = new List<string>();
+
+    [Header("Events")]
+    public BuildingDataEvent OnBuildingUnlocked;
+
+    [Header("Persistence")]
+    public string saveKey = "UnlockedBuildingIDs";
+
+    Dictionary<string, BuildingData> _byId;
+    HashSet<string> _unlockedSet;
+
+    void Awake()
+    {
+        var allBuildings = buildingDatabase != null ? buildingDatabase.buildings : Array.Empty<BuildingData>();
+        _byId = new Dictionary<string, BuildingData>();
+
+        foreach (var b in allBuildings)
+            if (b != null && !string.IsNullOrEmpty(b.id))
+                _byId[b.id] = b;
+
+        LoadUnlockedIds();
+        CacheUnlockedList();
+
+        // unlock defaults (vibrancyUnlock == 0)
+        foreach (var b in allBuildings)
+        {
+            if (b != null && b.vibrancyUnlock == 0 && !_unlockedSet.Contains(b.id))
+                AddUnlocked(b.id, save: false);
+        }
+
+        // ✅ NEW: Force create save on start (so PlayerPrefs key always exists)
+        SaveUnlockedIds();
+    }
+
+    void CacheUnlockedList() => _unlockedSet = new HashSet<string>(unlockedIds);
+
+    public void SetVibrancy(int newVibrancy)
+    {
+        if (newVibrancy == vibrancy) return;
+        vibrancy = newVibrancy;
+        CheckUnlocks();
+    }
+
+    public void CheckUnlocks()
+    {
+        bool changed = false;
+        var allBuildings = buildingDatabase != null ? buildingDatabase.buildings : Array.Empty<BuildingData>();
+
+        foreach (var b in allBuildings)
+        {
+            if (b == null || _unlockedSet.Contains(b.id)) continue;
+            if (vibrancy >= b.vibrancyUnlock)
+            {
+                AddUnlocked(b.id, save: true);
+                changed = true;
+            }
+        }
+
+        if (changed) SaveUnlockedIds();
+    }
+
+    void AddUnlocked(string id, bool save = true)
+    {
+        if (string.IsNullOrEmpty(id)) return;
+        if (_unlockedSet.Contains(id)) return;
+
+        _unlockedSet.Add(id);
+        unlockedIds.Add(id);
+
+        if (_byId.TryGetValue(id, out var so))
+        {
+            Debug.Log($"[UnlockManager] Unlocked building: {so.buildingName} (id={id}) at vibrancy {vibrancy}");
+            OnBuildingUnlocked?.Invoke(so);
+
+#if PLAYMAKER
+            var fsmStr = FsmVariables.GlobalVariables.GetFsmString("LastUnlockedBuildingID");
+            if (fsmStr != null) fsmStr.Value = id;
+            PlayMakerFSM.BroadcastEvent("BUILDING_UNLOCKED");
+#endif
+        }
+
+        if (save) SaveUnlockedIds();
+    }
+
+    [Serializable] class StringListContainer { public string[] items; }
+
+    void SaveUnlockedIds()
+    {
+        string json = JsonUtility.ToJson(new StringListContainer { items = unlockedIds.ToArray() });
+        PlayerPrefs.SetString(saveKey, json);
+        PlayerPrefs.Save();
+    }
+
+    void LoadUnlockedIds()
+    {
+        unlockedIds = new List<string>();
+        if (!PlayerPrefs.HasKey(saveKey)) return;
+
+        string json = PlayerPrefs.GetString(saveKey);
+        var container = JsonUtility.FromJson<StringListContainer>(json);
+        if (container != null && container.items != null)
+            unlockedIds.AddRange(container.items);
+    }
+
+    // 🧩 Debug helper
+    [ContextMenu("Debug Print Unlocked IDs")]
+    void DebugPrintUnlocked()
+    {
+        Debug.Log("Unlocked IDs: " + string.Join(", ", unlockedIds));
+    }
+}
