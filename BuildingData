@@ -1,0 +1,38 @@
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "Game/Building Data")]
+public class BuildingData : ScriptableObject
+{
+    public string buildingName;
+
+    // Updated to Enums!
+    public BuildingCategory category;
+    public BuildingID id;
+
+    // (residentialBuilding boolean removed)
+
+    public string description;
+    public GameObject prefab;
+    public Sprite icon;
+    public Sprite iconLocked;
+    public int cost;
+    public int population;
+    public int money;
+    public int happiness;
+    public int vibrancy;
+    public int vibrancyUnlock;
+    public int index;
+    [Header("Building Milestone Reward")]
+    public string milestoneLevel;
+    public int rewardMoney;
+    public int rewardPopulation;
+    public int rewardHappiness;
+    [Header("Building Modification")]
+    public Material variantA;
+    public Material variantB;
+    public Material variantC;
+    public Material variantD;
+    [Header("Commercial Store Settings")]
+    [Tooltip("If this is a store, drag its specific Item Catalog SO here. If it's a house, leave it blank!")]
+    public StoreItemCatalog itemCatalog;
+}
