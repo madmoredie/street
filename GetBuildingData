@@ -1,0 +1,150 @@
+using UnityEngine;
+using HutongGames.PlayMaker;
+
+[ActionCategory("Game/Building")]
+public class GetBuildingData : FsmStateAction
+{
+    [RequiredField]
+    [ObjectType(typeof(BuildingData))]
+    public FsmObject buildingData;
+
+    [UIHint(UIHint.Variable)]
+    public FsmString buildingName;
+
+    // Updated to FsmEnum and strongly typed to BuildingCategory!
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(BuildingCategory))]
+    public FsmEnum category;
+
+    // residentialBuilding removed from here!
+
+    [UIHint(UIHint.Variable)]
+    public FsmString description;
+
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(GameObject))]
+    public FsmGameObject prefab;
+
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(Sprite))]
+    public FsmObject icon;
+
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(Sprite))]
+    public FsmObject iconLocked;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt cost;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt population;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt money;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt happiness;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt vibrancy;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt vibrancyUnlock;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt index;
+
+    [UIHint(UIHint.Variable)]
+    public FsmString milestoneLevel;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt rewardMoney;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt rewardPopulation;
+
+    [UIHint(UIHint.Variable)]
+    public FsmInt rewardHappiness;
+
+    // Updated to FsmEnum and strongly typed to BuildingID!
+    [UIHint(UIHint.Variable)]
+    [ObjectType(typeof(BuildingID))]
+    public FsmEnum id;
+
+    [UIHint(UIHint.Variable)]
+    public FsmMaterial variantA;
+
+    [UIHint(UIHint.Variable)]
+    public FsmMaterial variantB;
+
+    [UIHint(UIHint.Variable)]
+    public FsmMaterial variantC;
+
+    [UIHint(UIHint.Variable)]
+    public FsmMaterial variantD;
+
+    public override void Reset()
+    {
+        buildingData = null;
+        buildingName = null;
+        category = null; // FsmEnum safely resets to null
+        description = null;
+        prefab = null;
+        icon = null;
+        iconLocked = null;
+        cost = null;
+        population = null;
+        money = null;
+        happiness = null;
+        vibrancy = null;
+        vibrancyUnlock = null;
+        index = null;
+        milestoneLevel = null;
+        rewardMoney = null;
+        rewardPopulation = null;
+        rewardHappiness = null;
+        id = null; // FsmEnum safely resets to null
+        variantA = null;
+        variantB = null;
+        variantC = null;
+        variantD = null;
+    }
+
+    public override void OnEnter()
+    {
+        var data = buildingData.Value as BuildingData;
+        if (data != null)
+        {
+            buildingName.Value = data.buildingName;
+
+            // FsmEnum automatically accepts the Enum value from the SO
+            category.Value = data.category;
+
+            description.Value = data.description;
+            prefab.Value = data.prefab;
+            icon.Value = data.icon;
+            iconLocked.Value = data.iconLocked;
+            cost.Value = data.cost;
+            population.Value = data.population;
+            money.Value = data.money;
+            happiness.Value = data.happiness;
+            vibrancy.Value = data.vibrancy;
+            vibrancyUnlock.Value = data.vibrancyUnlock;
+            index.Value = data.index;
+            milestoneLevel.Value = data.milestoneLevel;
+            rewardMoney.Value = data.rewardMoney;
+            rewardPopulation.Value = data.rewardPopulation;
+            rewardHappiness.Value = data.rewardHappiness;
+
+            // Assign the BuildingID Enum
+            id.Value = data.id;
+
+            variantA.Value = data.variantA;
+            variantB.Value = data.variantB;
+            variantC.Value = data.variantC;
+            variantD.Value = data.variantD;
+        }
+
+        Finish();
+    }
+}
